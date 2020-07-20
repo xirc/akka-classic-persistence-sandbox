@@ -25,5 +25,7 @@ class ExamplePersistentActorSpec
     recoveredActor ! "get"
     val recoveredState = expectMsgType[ExamplePersistentActor.State]
     recoveredState.events.size shouldBe numOfCommands
+
+    recoveredActor ! "delete"
   }
 }

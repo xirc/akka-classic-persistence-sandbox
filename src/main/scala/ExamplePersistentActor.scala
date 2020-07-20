@@ -1,5 +1,5 @@
 import akka.actor.{ActorLogging, Props}
-import akka.persistence.{PersistentActor, Recovery, RecoveryCompleted, SnapshotOffer, SnapshotSelectionCriteria}
+import akka.persistence.{DeleteMessagesFailure, DeleteMessagesSuccess, PersistentActor, Recovery, RecoveryCompleted, SnapshotOffer, SnapshotSelectionCriteria}
 
 object ExamplePersistentActor {
   def props(): Props = Props(new ExamplePersistentActor)
@@ -19,6 +19,7 @@ final class ExamplePersistentActor extends PersistentActor with ActorLogging {
   override def persistenceId: String = "sample-id-1"
 
   private var state = State()
+
   private def numOfEvents = state.size
   private val snapshotInterval = 10
 
@@ -42,6 +43,10 @@ final class ExamplePersistentActor extends PersistentActor with ActorLogging {
     case RecoveryCompleted =>
       logRecoveryStatus()
       log.info("Recovery Completed !")
+    case DeleteMessagesFailure =>
+      log.info("Delete Message Failure")
+    case DeleteMessagesSuccess =>
+      log.info("Delete Message Success")
   }
 
   override def receiveCommand: Receive = {
@@ -58,6 +63,9 @@ final class ExamplePersistentActor extends PersistentActor with ActorLogging {
     case "get" =>
       log.info("{}", state)
       sender() ! state
+    case "delete" =>
+      // this is not good way in most case.
+      deleteMessages(snapshotSequenceNr)
   }
 
   private def logRecoveryStatus(): Unit = {
